@@ -1,0 +1,36 @@
+# ----- General -----
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ----- Editor / IDE -----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# ----- WordPress / WP-CLI -----
+# wp-config-local.php, debug.log, etc. are not part of plugin source.
+wp-config*.php
+debug.log
+*.log
+
+# ----- Builds -----
+# Don't commit built zip files or compiled assets.
+*.zip
+build/
+dist/
+
+# ----- Test artifacts -----
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+
+# ----- Secrets -----
+.env
+.env.*
+secrets.php
