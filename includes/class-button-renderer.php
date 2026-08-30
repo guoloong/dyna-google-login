@@ -12,7 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *      (hooks: woocommerce_login_form_start, woocommerce_register_form_start).
  *      Works when the theme uses the standard WC form.
  *
- *   2. Shortcode [dyna_google_login] for Divi / custom themes that override
+ *   2. Auto-injection on the WooCommerce Checkout page
+ *      (hook: woocommerce_checkout_before_customer_details).
+ *      Shown for guest checkout; disabled via admin setting if needed.
+ *      After login, the user is returned to the same checkout page so the
+ *      cart is preserved.
+ *
+ *   3. Shortcode [dyna_google_login] for Divi / custom themes that override
  *      the WC form and break auto-injection. Drop a Text or Code module
  *      into the Divi My Account page and paste the shortcode.
  *
@@ -36,6 +42,9 @@ class Button_Renderer {
 		add_action( 'woocommerce_login_form_start', [ $this, 'render' ] );
 		add_action( 'woocommerce_register_form_start', [ $this, 'render' ] );
 
+		// Checkout — guest checkout flow. Toggled by the admin setting.
+		add_action( 'woocommerce_checkout_before_customer_details', [ $this, 'render_on_checkout' ] );
+
 		// Error notice after a failed Google callback.
 		add_action( 'woocommerce_login_form_start', [ $this, 'maybe_render_error' ], 5 );
 		add_action( 'woocommerce_register_form_start', [ $this, 'maybe_render_error' ], 5 );
@@ -58,6 +67,28 @@ class Button_Renderer {
 		echo $this->get_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — html is escaped inside.
 	}
 
+	/**
+	 * Render the Google button at the top of the WooCommerce checkout form,
+	 * unless the admin has disabled it.
+	 *
+	 * Filter `dyna_google_login_show_on_checkout` lets themes/plugins force-hide
+	 * it (e.g. on a custom checkout page) without touching the admin setting.
+	 */
+	public function render_on_checkout() {
+		if ( ! $this->settings->is_show_on_checkout() ) {
+			return;
+		}
+		/**
+		 * Filter whether the Google button is rendered on the WooCommerce checkout page.
+		 *
+		 * @param bool $show Whether to show the button. Default: the admin setting value.
+		 */
+		if ( ! apply_filters( 'dyna_google_login_show_on_checkout', true ) ) {
+			return;
+		}
+		echo $this->get_html( 'checkout' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
 	public function maybe_render_error() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- informational query var, not a state change.
 		if ( empty( $_GET[ OAuth::ERROR_QUERY ] ) ) {
@@ -70,8 +101,14 @@ class Button_Renderer {
 
 	/**
 	 * Build the button HTML. Returns '' if not configured, user is logged in, etc.
+	 *
+	 * @param string $context Where the button is being rendered.
+	 *                        '' (default) → My Account login/register form.
+	 *                        'checkout'  → WooCommerce checkout page. Adds a wrapper
+	 *                                      modifier class and a small "or continue
+	 *                                      as guest" divider below the button.
 	 */
-	private function get_html() {
+	private function get_html( $context = '' ) {
 		if ( ! $this->settings->is_configured() ) {
 			return '';
 		}
@@ -87,9 +124,14 @@ class Button_Renderer {
 		}
 		$text = $this->settings->get( 'button_text', 'Continue with Google' );
 
+		$wrapper_class = 'dyna-google-login-wrapper';
+		if ( 'checkout' === $context ) {
+			$wrapper_class .= ' dyna-google-login-wrapper--checkout';
+		}
+
 		ob_start();
 		?>
-		<div class="dyna-google-login-wrapper">
+		<div class="<?php echo esc_attr( $wrapper_class ); ?>">
 			<a class="dyna-google-login-button" href="<?php echo esc_url( $url ); ?>" rel="nofollow">
 				<span class="dyna-google-login-icon" aria-hidden="true">
 					<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" focusable="false">
@@ -101,6 +143,11 @@ class Button_Renderer {
 				</span>
 				<span class="dyna-google-login-text"><?php echo esc_html( $text ); ?></span>
 			</a>
+			<?php if ( 'checkout' === $context ) : ?>
+				<div class="dyna-google-login-divider" aria-hidden="true">
+					<span><?php esc_html_e( 'or continue as guest', 'dyna-google-login' ); ?></span>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 		return (string) ob_get_clean();

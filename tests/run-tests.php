@@ -1,6 +1,6 @@
 <?php
 /**
- * Dyna Google Login — full test suite (v1.0.2).
+ * Dyna Google Login — full test suite (v1.1.0).
  *
  * Run:  php tests/run-tests.php
  *
@@ -11,6 +11,7 @@
  *   1-6:  JWT verification (sign roundtrip, tamper, wrong aud, expired, alg=none)
  *   7-13: User creation, auto-link, auto-link-disabled, username collision, button render, second-time login regression
  *   14-20: HTTPS detection in login_user (is_ssl, X-Forwarded-Proto, CF-Visitor)
+ *   21-23: Checkout-page button (v1.1.0) — show-on-checkout default, off-by-setting, HTML modifier+divider
  */
 
 declare(strict_types=1);
@@ -344,6 +345,38 @@ $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'http';
 get_plugin()->user_handler->handle( [ 'sub' => 's1', 'email' => 'a@b.com', 'email_verified' => true ], '' );
 $call = last_auth_call();
 if ( $call && $call['secure'] === false ) ok( 'http correctly detected' ); else bad( 'expected false' );
+
+echo "\n=== Checkout button (tests 21-23, v1.1.0) ===\n";
+
+echo "Test 21: is_show_on_checkout() defaults to true (v1.1.0)\n";
+reset_state();
+if ( get_plugin()->settings->is_show_on_checkout() === true ) ok( 'default is on' ); else bad( 'expected default true' );
+
+echo "Test 22: is_show_on_checkout() returns false when setting is disabled (v1.1.0)\n";
+reset_state();
+update_option( 'dyna_google_login_options', [
+	'client_id'        => 'test-client-id-12345.apps.googleusercontent.com',
+	'client_secret'    => 'GOCSPX-test-secret',
+	'default_role'     => 'customer',
+	'auto_link'        => 1,
+	'button_text'      => 'Continue with Google',
+	'show_on_checkout' => 0,
+] );
+if ( get_plugin()->settings->is_show_on_checkout() === false ) ok( 'off when set to 0' ); else bad( 'expected false' );
+
+echo "Test 23: Checkout button HTML has --checkout modifier and divider (v1.1.0)\n";
+reset_state();
+$ref = new ReflectionClass( \DynaGoogleLogin\Button_Renderer::class );
+$m = $ref->getMethod( 'get_html' );
+$m->setAccessible( true );
+$html = $m->invoke( get_plugin()->button_renderer, 'checkout' );
+if ( str_contains( $html, 'dyna-google-login-wrapper--checkout' )
+	&& str_contains( $html, 'dyna-google-login-divider' )
+	&& str_contains( $html, 'or continue as guest' ) ) {
+	ok( 'modifier class + divider + label all present' );
+} else {
+	bad( 'expected checkout wrapper + divider in HTML' );
+}
 
 echo "\n=== TOTAL: $pass passed, $fail failed ===\n";
 exit( $fail > 0 ? 1 : 0 );

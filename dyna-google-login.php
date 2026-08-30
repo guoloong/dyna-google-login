@@ -3,7 +3,7 @@
  * Plugin Name: Dyna Google Login
  * Plugin URI:  https://www.dyna-nutrition.com
  * Description: Adds a "Continue with Google" button to the WooCommerce My Account page. Server-side OAuth 2.0, no JavaScript SDK, no external dependencies.
- * Version:     1.0.2
+ * Version:     1.1.0
  * Author:      dyna-nutrition.com
  * License:     GPL-2.0-or-later
  * Requires PHP: 7.4
@@ -26,7 +26,7 @@ if ( ! extension_loaded( 'openssl' ) ) {
 	return;
 }
 
-define( 'DYNA_GOOGLE_LOGIN_VERSION', '1.0.2' );
+define( 'DYNA_GOOGLE_LOGIN_VERSION', '1.1.0' );
 define( 'DYNA_GOOGLE_LOGIN_FILE', __FILE__ );
 define( 'DYNA_GOOGLE_LOGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DYNA_GOOGLE_LOGIN_URL', plugin_dir_url( __FILE__ ) );

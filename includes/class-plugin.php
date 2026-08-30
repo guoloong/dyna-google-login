@@ -84,11 +84,12 @@ class Plugin {
 		// Set defaults so the admin page renders sensibly on first open.
 		if ( false === get_option( DYNA_GOOGLE_LOGIN_OPTION_KEY ) ) {
 			add_option( DYNA_GOOGLE_LOGIN_OPTION_KEY, [
-				'client_id'     => '',
-				'client_secret' => '',
-				'default_role'  => 'customer',
-				'auto_link'     => 1,
-				'button_text'   => 'Continue with Google',
+				'client_id'        => '',
+				'client_secret'    => '',
+				'default_role'     => 'customer',
+				'auto_link'        => 1,
+				'button_text'      => 'Continue with Google',
+				'show_on_checkout' => 1,
 			] );
 		}
 	}

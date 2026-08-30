@@ -5,7 +5,7 @@ Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
 WC requires at least: 5.0
-Stable tag: 1.0.2
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,7 +13,7 @@ Adds a "Continue with Google" button to the WooCommerce My Account page. Server-
 
 == Description ==
 
-A focused, dependency-free Google sign-in plugin for the WooCommerce My Account page.
+A focused, dependency-free Google sign-in plugin for the WooCommerce My Account and Checkout pages.
 
 Features:
 
@@ -21,7 +21,7 @@ Features:
 * Auto-creates WordPress users as WooCommerce customers.
 * Silently links existing WordPress accounts by email match (toggleable).
 * Stores Google `sub` (stable user ID) in user_meta for re-login.
-* Preserves guest cart across Google login.
+* Preserves guest cart across Google login — works on both the My Account and Checkout pages.
 * JWT signature verified against Google's published JWKS (cached 1h).
 * Shortcode `[dyna_google_login]` for Divi / custom themes.
 * No Composer, no npm, no third-party runtime services.
@@ -35,7 +35,7 @@ Features:
 5. Copy the **Authorized redirect URI** shown on the settings page into your Google Cloud Console → APIs & Services → Credentials → your OAuth client.
 6. Make sure your OAuth consent screen is configured (External user type, support email, scopes: openid + email + profile).
 7. If your app is still in "Testing" mode, add your test Gmail addresses under "Test users" — otherwise Google will block them.
-8. Test in an incognito window from `/my-account/`.
+8. Test in an incognito window from `/my-account/` or `/checkout/`.
 
 == Configuration ==
 
@@ -43,6 +43,7 @@ Features:
 * **Button text** — Customize the label. Default: "Continue with Google".
 * **Auto-link by email** — If a Google account's email matches an existing WordPress user, log them in as that user silently. Recommended.
 * **Default role for new users** — Customer (WooCommerce) or Subscriber.
+* **Show on Checkout page** — Also render the button on the WooCommerce Checkout page (top of the form, above the billing fields). Default: on. After Google login the customer is returned to the same checkout page and their cart is preserved.
 
 == Frequently Asked Questions ==
 
@@ -63,6 +64,12 @@ No. Only the `sub` (Google's stable user ID) and `picture` URL are kept in `wp_u
 New users get a random 32-character password they never see. They can request a password reset email later if they want a password login as a backup.
 
 == Changelog ==
+
+= 1.1.0 =
+* **New:** The "Continue with Google" button now also appears on the WooCommerce Checkout page (top of the form, above the billing fields) for guest checkout. After Google login the customer is returned to the same checkout page and their guest cart is preserved.
+* **New:** Added a "Placement" setting (Settings → Dyna Google Login → Show on Checkout page) so the admin can turn the checkout button off if they only want it on the My Account form.
+* **New:** Added a filter `dyna_google_login_show_on_checkout` for themes/plugins to force-hide the checkout button.
+* **Tweak:** Checkout-specific CSS — the button is constrained to a sensible column width and a small "or continue as guest" divider is added below it so it doesn't look orphaned.
 
 = 1.0.2 =
 * **Bug fix:** Logged-in users who clicked "Dashboard" in the admin bar were bounced to `/wp-login.php?reauth=1` after Google login. Front-end (orders, admin bar) worked, but `/wp-admin/` rejected the auth cookie. Cause: behind Cloudflare, `is_ssl()` returns false at the origin, so `wp_set_auth_cookie()` was writing a non-Secure auth cookie while `/wp-admin/` was looking for `SECURE_AUTH_COOKIE` (because of a Flexible-SSL shim or similar on the admin side). Fix: detect HTTPS via `is_ssl()`, `HTTP_X_FORWARDED_PROTO`, and Cloudflare's `CF-Visitor` JSON header, and pass the result as `$secure` to `wp_set_auth_cookie()`. Also calls `wp_clear_auth_cookie()` first to match the standard `wp_signon()` flow. Added regression tests for all three HTTPS-detection paths.

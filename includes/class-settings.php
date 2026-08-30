@@ -16,11 +16,12 @@ class Settings {
 	/** Default values, merged with stored options on read. */
 	private function defaults() {
 		return [
-			'client_id'     => '',
-			'client_secret' => '',
-			'default_role'  => 'customer',
-			'auto_link'     => 1,
-			'button_text'   => 'Continue with Google',
+			'client_id'       => '',
+			'client_secret'   => '',
+			'default_role'    => 'customer',
+			'auto_link'       => 1,
+			'button_text'     => 'Continue with Google',
+			'show_on_checkout' => 1,
 		];
 	}
 
@@ -41,6 +42,14 @@ class Settings {
 		$id     = $this->get( 'client_id' );
 		$secret = $this->get( 'client_secret' );
 		return ! empty( $id ) && ! empty( $secret );
+	}
+
+	/**
+	 * Whether the Google button should be injected on the WooCommerce checkout page.
+	 * Default: on. Admin can disable from Settings → Dyna Google Login.
+	 */
+	public function is_show_on_checkout() {
+		return (bool) $this->get( 'show_on_checkout', 1 );
 	}
 
 	/**
@@ -88,6 +97,7 @@ class Settings {
 		}
 		$out['auto_link']   = ! empty( $input['auto_link'] ) ? 1 : 0;
 		$out['button_text'] = sanitize_text_field( $input['button_text'] ?? 'Continue with Google' );
+		$out['show_on_checkout'] = ! empty( $input['show_on_checkout'] ) ? 1 : 0;
 		if ( '' === $out['button_text'] ) {
 			$out['button_text'] = 'Continue with Google';
 		}
@@ -162,6 +172,24 @@ class Settings {
 								class="regular-text"
 							/>
 							<p class="description"><?php esc_html_e( 'Default: "Continue with Google".', 'dyna-google-login' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Placement', 'dyna-google-login' ); ?></th>
+						<td>
+							<label for="dyna_gl_show_on_checkout">
+								<input
+									type="checkbox"
+									id="dyna_gl_show_on_checkout"
+									name="<?php echo esc_attr( self::OPTION_KEY ); ?>[show_on_checkout]"
+									value="1"
+									<?php checked( $opts['show_on_checkout'], 1 ); ?>
+								/>
+								<?php esc_html_e( 'Also show the button on the WooCommerce Checkout page (guest checkout).', 'dyna-google-login' ); ?>
+							</label>
+							<p class="description">
+								<?php esc_html_e( 'When enabled, logged-out visitors see the Google button at the top of the checkout form. After login, they are returned to the checkout page and their cart is preserved. Always shown on the My Account login/register form regardless of this setting.', 'dyna-google-login' ); ?>
+							</p>
 						</td>
 					</tr>
 					<tr>

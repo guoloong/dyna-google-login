@@ -68,6 +68,37 @@
 	margin-top: 8px;
 }
 
+/* Checkout-page placement: keep button inside the form's column width, not full-bleed. */
+.dyna-google-login-wrapper--checkout {
+	max-width: 480px;
+	margin: 0 0 18px 0;
+}
+
+/* "or continue as guest" divider that sits between the Google button and the billing fields. */
+.dyna-google-login-divider {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 14px 0 4px 0;
+	color: #5f6368;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.6px;
+	line-height: 1;
+}
+
+.dyna-google-login-divider::before,
+.dyna-google-login-divider::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: #dadce0;
+}
+
+.dyna-google-login-divider span {
+	white-space: nowrap;
+}
+
 /* Error notice style for failed OAuth callback */
 .dyna-google-login-error {
 	background: #fef2f2;
